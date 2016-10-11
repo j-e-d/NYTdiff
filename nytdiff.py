@@ -146,11 +146,13 @@ class BaseParser(object):
         if reply_to is None:
             logging.info('Tweeting url: %s', url)
             tweet = self.tweet_text(url)
-            reply_to = tweet.id if not TESTING else 'test_tweet_id'
+            # if TESTING, give a random id based on time
+            reply_to = tweet.id if not TESTING else time.time()
         logging.info('Replying to: %s', reply_to)
         tweet = self.tweet_with_media(text, images, reply_to)
         if TESTING :
-            tweet_id = 'test_tweet_id'
+            # if TESTING, give a random id based on time
+            tweet_id = time.time()
         else:
             tweet_id = tweet.id
         logging.info('Id to store: %s', tweet_id)
