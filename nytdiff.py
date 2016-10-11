@@ -429,14 +429,9 @@ class RSSParser(BaseParser):
                                        ORDER BY version DESC \
                                        LIMIT 1' % (data['article_id']))
                 for row in result:
-                    data['version'] = row['version']
+                    data['version'] = row['version'] +1
                     self.versions_table.insert(data)
                     url = data['url']
-                    if row['url'] != data['url']:
-                        if self.show_diff(row['url'], data['url']):
-                            tweet_text = "Modification d'URL"
-                            self.tweet(tweet_text, data['article_id'], url,
-                                       'article_id')
                     if row['title'] != data['title']:
                         if self.show_diff(row['title'], data['title']):
                             tweet_text = "Modification du Titre"
@@ -450,6 +445,11 @@ class RSSParser(BaseParser):
                     if row['author'] != data['author']:
                         if self.show_diff(row['author'], data['author']):
                             tweet_text = "Modification de l'auteur"
+                            self.tweet(tweet_text, data['article_id'], url,
+                                       'article_id')
+                    if row['url'] != data['url']:
+                        if self.show_diff(row['url'], data['url']):
+                            tweet_text = "Modification d'URL"
                             self.tweet(tweet_text, data['article_id'], url,
                                        'article_id')
 
