@@ -7,6 +7,7 @@ export NYT_TWITTER_ACCESS_TOKEN=""
 export NYT_TWITTER_ACCESS_TOKEN_SECRET=""
 
 export NYT_API_KEY=""
+export RSS_URL=""
 
 export PHANTOMJS_PATH="./"
 
