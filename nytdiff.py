@@ -384,7 +384,7 @@ class RSSParser(BaseParser):
         article_dict['title'] = article.title
         article_dict['abstract'] = self.strip_html(article.description)
         article_dict['author'] = article.author
-        article_dict['illustration'] = article.media_content[0]['url']
+        # article_dict['illustration'] = article.media_content[0]['url']
         # article_dict['illustartion_size'] = article.media_content[0]['filesize']
         od = collections.OrderedDict(sorted(article_dict.items()))
         article_dict['hash'] = hashlib.sha224(
@@ -448,11 +448,6 @@ class RSSParser(BaseParser):
                     if row['author'] != data['author']:
                         if self.show_diff(row['author'], data['author']):
                             tweet_text = "Modification de l'auteur"
-                            self.tweet(tweet_text, data['article_id'], url,
-                                       'article_id')
-                    if row['illustration'] != data['illustration']:
-                        if self.show_diff(row['illustration'], data['illustration']):
-                            tweet_text = "Modification de l'illustration"
                             self.tweet(tweet_text, data['article_id'], url,
                                        'article_id')
 
