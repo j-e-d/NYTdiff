@@ -1,12 +1,12 @@
-@font-face { 
-    font-family: Merriweather; 
+@font-face {
+    font-family: Merriweather;
     font-style: normal;
     font-weight: normal;
-    src: url('../fonts/Merriweather-Regular.ttf') format("truetype"); 
-} 
+    src: url('../fonts/Merriweather-Regular.ttf') format("truetype");
+}
 
-body { 
-    background: lightgray url('../img/paper_fibers.png') repeat; 
+body {
+    background: lightgray url('../img/paper_fibers.png') repeat;
     font-family: Merriweather;
     font-size: 16px;
 }
@@ -17,6 +17,7 @@ p {
     margin-top: 1em;
     margin-bottom: 1em;
     font-weight: normal;
+    word-wrap: break-word;
 }
 
 del {
