@@ -126,6 +126,7 @@ class BaseParser(object):
     def tweet_text(self, text):
         if TESTING:
             print (text)
+            return True
         try:
             tweet_id = self.api.update_status(status=text)
         except:
@@ -143,15 +144,17 @@ class BaseParser(object):
         logging.info('Article id: %s', article_id)
         reply_to = self.get_prev_tweet(article_id, column)
         if reply_to is None:
-
-
             logging.info('Tweeting url: %s', url)
             tweet = self.tweet_text(url)
-            reply_to = tweet.id
+            reply_to = tweet.id if not TESTING else 'test_tweet_id'
         logging.info('Replying to: %s', reply_to)
         tweet = self.tweet_with_media(text, images, reply_to)
-        logging.info('Id to store: %s', tweet.id)
-        self.update_tweet_db(article_id, tweet.id, column)
+        if TESTING :
+            tweet_id = 'test_tweet_id'
+        else:
+            tweet_id = tweet.id
+        logging.info('Id to store: %s', tweet_id)
+        self.update_tweet_db(article_id, tweet_id, column)
         return
 
     def get_page(self, url, header=None, payload=None):
@@ -382,7 +385,7 @@ class RSSParser(BaseParser):
         article_dict['abstract'] = self.strip_html(article.description)
         article_dict['author'] = article.author
         article_dict['illustration'] = article.media_content[0]['url']
-        article_dict['illustartion_size'] = article.media_content[0]['filesize']
+        # article_dict['illustartion_size'] = article.media_content[0]['filesize']
         od = collections.OrderedDict(sorted(article_dict.items()))
         article_dict['hash'] = hashlib.sha224(
             repr(od.items()).encode('utf-8')).hexdigest()
@@ -430,33 +433,28 @@ class RSSParser(BaseParser):
                     if row['url'] != data['url']:
                         if self.show_diff(row['url'], data['url']):
                             tweet_text = "Modification d'URL"
-                            logging.info(tweet_text)
-                            # self.tweet(tweet_text, data['article_id'], url,
-                            #            'article_id')
+                            self.tweet(tweet_text, data['article_id'], url,
+                                       'article_id')
                     if row['title'] != data['title']:
                         if self.show_diff(row['title'], data['title']):
                             tweet_text = "Modification du Titre"
-                            logging.info(tweet_text)
-                            # self.tweet(tweet_text, data['article_id'], url,
-                            #            'article_id')
+                            self.tweet(tweet_text, data['article_id'], url,
+                                       'article_id')
                     if row['abstract'] != data['abstract']:
                         if self.show_diff(row['abstract'], data['abstract']):
                             tweet_text = "Modification de la Description"
-                            logging.info(tweet_text)
-                            # self.tweet(tweet_text, data['article_id'], url,
-                            #            'article_id')
+                            self.tweet(tweet_text, data['article_id'], url,
+                                       'article_id')
                     if row['author'] != data['author']:
                         if self.show_diff(row['author'], data['author']):
                             tweet_text = "Modification de l'auteur"
-                            logging.info(tweet_text)
-                            # self.tweet(tweet_text, data['article_id'], url,
-                            #            'article_id')
-                    if row['illustration'] != data['illustration'] or row['illustration_size'] != data['illustration_size']:
-                        if self.show_diff(row['illustration_size'], data['illustration_size']):
+                            self.tweet(tweet_text, data['article_id'], url,
+                                       'article_id')
+                    if row['illustration'] != data['illustration']:
+                        if self.show_diff(row['illustration'], data['illustration']):
                             tweet_text = "Modification de l'illustration"
-                            logging.info(tweet_text)
-                            # self.tweet(tweet_text, data['article_id'], url,
-                            #            'article_id')
+                            self.tweet(tweet_text, data['article_id'], url,
+                                       'article_id')
 
     def loop_entries(self, entries):
         if len(entries) == 0:
