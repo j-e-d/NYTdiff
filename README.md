@@ -36,10 +36,10 @@ Bots with similar functionality that I am aware of (please let me know of others
 |[RT]|[rt_edits]|
 |[Telegraph]|[telegraph_diff]|
 |[The Toronto Star]|[torstar_diff]|
+|[Valeurs Actuelles]|[valeurs_diff]|
 |[Wall Street Journal]|[wsj_diff]|
 |[The Washington Post]|[wapo_diff]|
 |[White House Blog]|[whitehouse_diff]|
-
 
 [wapo_diff]: https://twitter.com/wapo_diff
 [The Washington Post]: https://www.washingtonpost.com
@@ -112,3 +112,6 @@ Bots with similar functionality that I am aware of (please let me know of others
 
 [Le Soir]: http://lesoir.be
 [lesoir_diff]: https://twitter.com/lesoir_diff
+
+[Valeurs Actuelles]: https://www.valeursactuelles.com/
+[valeurs_diff]: https://twitter.com/valeurs_diff
