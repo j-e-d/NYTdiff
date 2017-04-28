@@ -15,6 +15,7 @@ Bots with similar functionality that I am aware of (please let me know of others
 
 |site|bot|
 |----|---|
+|[Ámbito]|[af_diff]|
 |[AP]|[ap_diff]|
 |[BBC]|[bbc_diff]|
 |[Breitbart News]|[breitbart_diff]|
@@ -23,23 +24,43 @@ Bots with similar functionality that I am aware of (please let me know of others
 |[The Canadian Broadcasting Corporation]|[cbc_diff]|
 |[Clarín]|[cl_diff]|
 |[CNN]|[cnn_diff]|
+|[Cronista]|[cc_diff]|
 |[Daily Mail]|[dailymail_diff]|
 |[Fox News]|[fox_diff]|
 |[The Globe and Mail]|[globemail_diff]|
 |[The Guardian]|[guardian_diff]|
+|[Infobae]|[ib_diff]|
 |[Le Monde]|[lemonde_diff]|
 |[La Nación]|[ln_diff]|
 |[La Presse]|[lapresse_diff]|
 |[La Repubblica]|[repubblica_diff]|
 |[Le Soir]|[lesoir_diff]|
+|[Página/12]|[p12_diff]|
 |[Reuters]|[reuters_diff]|
 |[RT]|[rt_edits]|
 |[Telegraph]|[telegraph_diff]|
+|[Todo Noticias]|[tn_diff]|
 |[The Toronto Star]|[torstar_diff]|
 |[Valeurs Actuelles]|[valeurs_diff]|
 |[Wall Street Journal]|[wsj_diff]|
 |[The Washington Post]|[wapo_diff]|
-|[White House Blog]|[whitehouse_diff]|
+|[White House Blog]|[whitehouse_diff]
+
+
+[af_diff]: https://twitter.com/af_diff
+[Ámbito]: http://www.ambito.com/
+
+[cc_diff]: https://twitter.com/cc_diff
+[Cronista]: https://www.cronista.com/
+
+[ib_diff]: https://twitter.com/ib_diff
+[Infobae]: http://www.infobae.com/
+
+[p12_diff]: https://twitter.com/p12_diff
+[Página/12]: https://www.pagina12.com.ar/
+
+[tn_diff]: https://twitter.com/tn_diff
+[Todo Noticias]: http://tn.com.ar
 
 [wapo_diff]: https://twitter.com/wapo_diff
 [The Washington Post]: https://www.washingtonpost.com
