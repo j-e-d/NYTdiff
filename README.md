@@ -15,6 +15,7 @@ Bots with similar functionality that I am aware of (please let me know of others
 
 |site|bot|
 |----|---|
+|[ABC Digital]|[EditandoAbc]|
 |[Ámbito]|[af_diff]|
 |[AP]|[ap_diff]|
 |[BBC]|[bbc_diff]|
@@ -46,6 +47,8 @@ Bots with similar functionality that I am aware of (please let me know of others
 |[The Washington Post]|[wapo_diff]|
 |[White House Blog]|[whitehouse_diff]
 
+[EditandoAbc]: https://twitter.com/EditandoAbc
+[ABC Digital]: http://www.abc.com.py/
 
 [af_diff]: https://twitter.com/af_diff
 [Ámbito]: http://www.ambito.com/
