@@ -39,6 +39,7 @@ Bots with similar functionality that I am aware of (please let me know of others
 |[Página/12]|[p12_diff]|
 |[Reuters]|[reuters_diff]|
 |[RT]|[rt_edits]|
+|[Stuff]|[stuff_diff]|
 |[Telegraph]|[telegraph_diff]|
 |[Todo Noticias]|[tn_diff]|
 |[The Toronto Star]|[torstar_diff]|
@@ -139,3 +140,6 @@ Bots with similar functionality that I am aware of (please let me know of others
 
 [Valeurs Actuelles]: https://www.valeursactuelles.com/
 [valeurs_diff]: https://twitter.com/valeurs_diff
+
+[Stuff]: https://www.stuff.co.nz/
+[stuff_diff]: https://twitter.com/stuff_diff
