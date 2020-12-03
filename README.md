@@ -17,32 +17,32 @@ Bots with similar functionality that I am aware of (please let me know of others
 |----|---|
 |[ABC Digital]|[EditandoAbc]|
 |[Ámbito]|[af_diff]|
-|[AP]|[ap_diff]|
+|[AP]|~~[ap_diff]~~|
 |[BBC]|~~[bbc_diff]~~|
 |[Breitbart News]|[breitbart_diff]|
-|[Calgary Herald]|[yyc_herald_diff]|
-|[Canadaland]|[canadaland_diff]|
+|[Calgary Herald]|~~[yyc_herald_diff]~~|
+|[Canadaland]|~~[canadaland_diff]~~|
 |[The Canadian Broadcasting Corporation]|~~[cbc_diff]~~|
 |[Clarín]|[cl_diff]|
 |[CNN]|~~[cnn_diff]~~|
 |[Cronista]|[cc_diff]|
 |[Daily Mail]|~~[dailymail_diff]~~|
 |[Fox News]|~~[fox_diff]~~|
-|[The Globe and Mail]|[globemail_diff]|
+|[The Globe and Mail]|~~[globemail_diff]~~|
 |[The Guardian]|[guardian_diff]|
 |[Infobae]|[ib_diff]|
 |[Le Monde]|[lemonde_diff]|
 |[La Nación]|[ln_diff]|
-|[La Presse]|[lapresse_diff]|
-|[La Repubblica]|[repubblica_diff]|
+|[La Presse]|~~[lapresse_diff]~~|
+|[La Repubblica]|~~[repubblica_diff]~~|
 |[Le Soir]|[lesoir_diff]|
 |[Página/12]|[p12_diff]|
 |[Reuters]|~~[reuters_diff]~~|
-|[RT]|[rt_edits]|
+|[RT]|~~[rt_edits]~~|
 |[Stuff]|[stuff_diff]|
 |[Telegraph]|~~[telegraph_diff]~~|
-|[Todo Noticias]|[tn_diff]|
-|[The Toronto Star]|[torstar_diff]|
+|[Todo Noticias]|~~[tn_diff]~~|
+|[The Toronto Star]|~~[torstar_diff]~~|
 |[Valeurs Actuelles]|[valeurs_diff]|
 |[Wall Street Journal]|[wsj_diff]|
 |[The Washington Post]|[wapo_diff]|
