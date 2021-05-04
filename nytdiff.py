@@ -210,11 +210,11 @@ class BaseParser(object):
                 if the change isn't only at the beginning or end:
                   - Alice Bob Charlie
                   + Alice Blob Charlie
-                  diff: Alice <del>Bob</del> <ins>Bob</ins> Charlie
+                  diff: Alice <del>Bob</del> <ins>Blob</ins> Charlie
                   
                   - Alice Bobby Charlie
                   + Alice bb Charlie
-                  diff: Alice <del>Bobby</del> <ins>bb</ins>
+                  diff: Alice <del>Bobby</del> <ins>bb</ins> Charlie
                   
                   - Alice Zeneca Charlie
                   + Alice AstraZeneca Charlie's
