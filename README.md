@@ -6,7 +6,7 @@ The [phantomjs](http://phantomjs.org/) binary needs to be installed and the path
 
 [Twitter keys](https://dev.twitter.com/) and the [NYT API](http://developers.nytimes.com/) key for the "Top Stories V2" service are needed, values of this keys need to be entered in the run_diff.sh file.
 
-Font: [Merriweather](https://fonts.google.com/specimen/Merriweather). Background pattern: [Paper Fibers](http://subtlepatterns.com/paper-fibers/).
+Font: [Merriweather](https://github.com/SorkinType/Merriweather). Background pattern: [Paper Fibers](http://subtlepatterns.com/paper-fibers/).
 
 If you wish to build your own version check [this fork](https://github.com/xuv/NYTdiff) that reads RSS feeds and [this project](https://github.com/docnow/diffengine) that is in part based on nyt_diff and also checks RSS feeds.
 
