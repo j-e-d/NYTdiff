@@ -28,6 +28,7 @@ Bots with similar functionality that I am aware of (please let me know of others
 |[Cronista]|[cc_diff]|
 |[Daily Mail]|~~[dailymail_diff]~~|
 |[Fox News]|~~[fox_diff]~~|
+|[Israeli News Websites]|[ILNewsDiff]|
 |[The Globe and Mail]|~~[globemail_diff]~~|
 |[The Guardian]|[guardian_diff]|
 |[Infobae]|[ib_diff]|
@@ -145,3 +146,6 @@ Some bot accounts are currently (November 2020) suspended by twitter and have be
 
 [Stuff]: https://www.stuff.co.nz/
 [stuff_diff]: https://twitter.com/stuff_diff
+
+[Israeli News Websites]: https://github.com/alonmln/ILNewsDiff
+[ILNewsDiff]: https://twitter.com/ILNewsDiff
