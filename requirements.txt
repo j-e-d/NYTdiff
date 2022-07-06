@@ -1,7 +1,7 @@
 alembic==0.8.7
 bleach==1.4.3
 dataset==0.6.4
-html5lib==0.9999999
+html5lib==0.999999999
 Mako==1.0.4
 MarkupSafe==0.23
 normality==0.2.4
