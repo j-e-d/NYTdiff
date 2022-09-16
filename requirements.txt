@@ -2,7 +2,7 @@ alembic==0.8.7
 bleach==1.4.3
 dataset==0.6.4
 html5lib==0.9999999
-Mako==1.0.4
+Mako==1.2.2
 MarkupSafe==0.23
 normality==0.2.4
 oauthlib==2.0.0
