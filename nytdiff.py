@@ -17,6 +17,7 @@ import requests
 import tweepy
 from simplediff import html_diff
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 
 TIMEZONE = 'America/Buenos_Aires'
 LOCAL_TZ = timezone(TIMEZONE)
@@ -106,7 +107,7 @@ class BaseParser(object):
     def tweet_with_media(self, text, images, reply_to=None):
         if TESTING:
             print (text, images, reply_to)
-            return True
+            return None
         try:
             if reply_to is not None:
                 tweet_id = self.api.update_status(
@@ -143,11 +144,13 @@ class BaseParser(object):
         if reply_to is None:
             logging.info('Tweeting url: %s', url)
             tweet = self.tweet_text(url)
-            reply_to = tweet.id
+            if tweet:
+                reply_to = tweet.id
         logging.info('Replying to: %s', reply_to)
         tweet = self.tweet_with_media(text, images, reply_to)
-        logging.info('Id to store: %s', tweet.id)
-        self.update_tweet_db(article_id, tweet.id, column)
+        if tweet:
+            logging.info('Id to store: %s', tweet.id)
+            self.update_tweet_db(article_id, tweet.id, column)
         return
 
     def get_page(self, url, header=None, payload=None):
@@ -175,12 +178,10 @@ class BaseParser(object):
         """
         tags = []
         attr = {}
-        styles = []
         strip = True
         return bleach.clean(html_str,
                             tags=tags,
                             attributes=attr,
-                            styles=styles,
                             strip=strip)
 
     def show_diff(self, old, new):
@@ -206,10 +207,9 @@ class BaseParser(object):
         with open('tmp.html', 'w') as f:
             f.write(html)
 
-        driver = webdriver.PhantomJS(
-            executable_path=PHANTOMJS_PATH + 'phantomjs')
-        driver.get('tmp.html')
-        e = driver.find_element_by_xpath('//p')
+        driver = webdriver.Chrome()
+        driver.get('file:///tmp.html')
+        e = driver.find_element(By.XPATH, '//p')
         start_height = e.location['y']
         block_height = e.size['height']
         end_height = start_height
