@@ -15,7 +15,7 @@ from PIL import Image
 from pytz import timezone
 import requests
 import tweepy
-from simplediff import html_diff
+from simplediff import string_diff
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
@@ -184,12 +184,99 @@ class BaseParser(object):
                             attributes=attr,
                             strip=strip)
 
+    def html_diff(old, new):
+        """
+        Like simplediff.html_diff(), with a tweak: if a hunk
+        consists of only deleting or only adding at the beginning
+        or end of a word, then it's combined into one hunk.
+
+        Examples:
+            Changes from simplediff:
+                - Alice, Bob and Charlie
+                + Alice, Bob, and Charlie
+                simplediff: Alice, <del>Bob</del><ins>Bob,</ins> Charlie
+                this diff:  Alice, Bob<del>,</del> Charlie
+
+                - Alice Bob Charlie's Angels And David
+                + Alice Bob Charlie David
+                simplediff: Alice Bob <del>Charlie's Angels And</del><ins>Charlie</ins> David
+                this diff:  Alice Bob Charlie<del>'s Angels And</del> David
+
+            Same as simplediff:
+                hunks you wouldn't want simplified:
+                  - Alice Bob Charlie
+                  + Alice Robert Charlie
+                  diff: Alice <del>Bob</del> <ins>Robert</ins> Charlie
+
+                if the change isn't only at the beginning or end:
+                  - Alice Bob Charlie
+                  + Alice Blob Charlie
+                  diff: Alice <del>Bob</del> <ins>Blob</ins> Charlie
+                  
+                  - Alice Bobby Charlie
+                  + Alice bb Charlie
+                  diff: Alice <del>Bobby</del> <ins>bb</ins> Charlie
+                  
+                  - Alice Zeneca Charlie
+                  + Alice AstraZeneca Charlie's
+                  diff: Alice <del>Zeneca Charlie</del> <ins>AstraZeneca Charlie's</ins>
+        """
+        def hunk_to_html(op, words):
+            words = ' '.join(words)
+            if op == '-':
+                return '<del>{}</del>'.format(words)
+            if op == '+':
+                return '<ins>{}</ins>'.format(words)
+            return words
+
+        hunks = string_diff(old, new)
+        html = []
+        skip_next = False
+        for (prev_op, prev_words), (next_op, next_words) in zip(hunks[:-1], hunks[1:]):
+            if prev_op == '-' and next_op == '+':
+                if len(prev_words) == 1:
+                    [old_word] = prev_words
+                    first_new_word, last_new_word = next_words[0], next_words[-1]
+                    if first_new_word.startswith(old_word):
+                        next_words[0] = old_word + '<ins>' + first_new_word[len(old_word):]
+                        html.append(' '.join(next_words) + '</ins>')
+                        skip_next = True
+                        continue
+                    elif last_new_word.endswith(old_word):
+                        next_words[-1] = last_new_word[:-len(old_word)] + '</ins>' + old_word
+                        html.append('<ins>' + ' '.join(next_words))
+                        skip_next = True
+                        continue
+                if len(next_words) == 1:
+                    [new_word] = next_words
+                    first_old_word, last_old_word = prev_words[0], prev_words[-1]
+                    if first_old_word.startswith(new_word):
+                        prev_words[0] = new_word + '<del>' + first_old_word[len(new_word):]
+                        html.append(' '.join(prev_words) + '</del>')
+                        skip_next = True
+                        continue
+                    elif last_old_word.endswith(new_word):
+                        prev_words[-1] = last_old_word[:-len(new_word)] + '</del>' + new_word
+                        html.append('<del>' + ' '.join(prev_words))
+                        skip_next = True
+                        continue
+            if skip_next:
+                skip_next = False
+                continue
+            html.append(hunk_to_html(prev_op, prev_words))
+
+        if not skip_next:
+            html.append(hunk_to_html(*(hunks[-1])))
+
+        return ' '.join(html)
+
     def show_diff(self, old, new):
         if len(old) == 0 or len(new) == 0:
             logging.info('Old or New empty')
             return False
         new_hash = hashlib.sha224(new.encode('utf8')).hexdigest()
-        logging.info(html_diff(old, new))
+        htmldiff = self.html_diff(old, new)
+        logging.info(htmldiff)
         html = """
         <!doctype html>
         <html lang="en">
@@ -203,7 +290,7 @@ class BaseParser(object):
           </p>
           </body>
         </html>
-        """.format(html_diff(old, new))
+        """.format(htmldiff)
         with open('tmp.html', 'w') as f:
             f.write(html)
 
