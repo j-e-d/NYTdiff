@@ -9,6 +9,8 @@ import os
 import sys
 import time
 
+from tempfile import NamedTemporaryFile
+
 import bleach
 import dataset
 from PIL import Image
@@ -204,11 +206,11 @@ class BaseParser(object):
           </body>
         </html>
         """.format(html_diff(old, new))
-        with open('tmp.html', 'w') as f:
+        with NamedTemporaryFile(mode='w', suffix=".html", delete=True) as f:
             f.write(html)
-
-        driver = webdriver.Chrome()
-        driver.get('file:///tmp.html')
+            f.flush()
+            driver = webdriver.Chrome()
+            driver.get('file://{}'.format(f.name))
         e = driver.find_element(By.XPATH, '//p')
         start_height = e.location['y']
         block_height = e.size['height']
