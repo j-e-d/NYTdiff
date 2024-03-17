@@ -6,10 +6,11 @@ import hashlib
 import json
 import logging
 import os
+import shutil
 import sys
 import time
 
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryDirectory
 
 import bleach
 import dataset
@@ -197,7 +198,7 @@ class BaseParser(object):
         <html lang="en">
           <head>
             <meta charset="utf-8">
-            <link rel="stylesheet" href="./css/styles.css">
+            <link rel="stylesheet" href="styles.css">
           </head>
           <body>
           <p>
@@ -206,11 +207,14 @@ class BaseParser(object):
           </body>
         </html>
         """.format(html_diff(old, new))
-        with NamedTemporaryFile(mode='w', suffix=".html", delete=True) as f:
-            f.write(html)
-            f.flush()
+        with TemporaryDirectory() as tmpdir:
+            tmpfile = os.path.join(tmpdir, 'tmp.html')
+            with open(tmpfile, 'w') as f:
+                f.write(html)
+            shutil.copy('./css/styles.css', tmpdir)
             driver = webdriver.Chrome()
-            driver.get('file://{}'.format(f.name))
+            driver.get('file://{}'.format(tmpfile))
+
         e = driver.find_element(By.XPATH, '//p')
         start_height = e.location['y']
         block_height = e.size['height']
