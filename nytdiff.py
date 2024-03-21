@@ -22,6 +22,8 @@ from simplediff import html_diff
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
+from atproto import Client, models
+
 TIMEZONE = 'America/Buenos_Aires'
 LOCAL_TZ = timezone(TIMEZONE)
 MAX_RETRIES = 10
@@ -44,7 +46,7 @@ PHANTOMJS_PATH = os.environ['PHANTOMJS_PATH']
 
 
 class BaseParser(object):
-    def __init__(self, api):
+    def __init__(self, api, bsky_api=None):
         self.urls = list()
         self.payload = None
         self.articles = dict()
@@ -52,6 +54,7 @@ class BaseParser(object):
         self.filename = str()
         self.db = dataset.connect('sqlite:///titles.db')
         self.api = api
+        self.bsky_api = bsky_api
 
     def test_twitter(self):
         print(self.api.rate_limit_status())
@@ -82,6 +85,26 @@ class BaseParser(object):
             else:
                 return None
 
+    def get_bsky_parent(self, article_id, column):
+        # Returns a tuple (parent, root) of bluesky "strong refs" for
+        # the previously posted article in this thread
+        # If no parent is found, returns (None, None)
+        if column == 'id':
+            search = self.articles_table.find_one(id=article_id)
+        else:
+            search = self.articles_table.find_one(article_id=article_id)
+        if search and 'post_uri' in search:
+            post_uri = search['post_uri']
+            post_cid = search['post_cid']
+            root_uri = search['root_uri']
+            root_cid = search['root_cid']
+            return (
+                models.ComAtprotoRepoStrongRef.Main(uri=post_uri, cid=post_cid),
+                models.ComAtprotoRepoStrongRef.Main(uri=root_uri, cid=root_cid),
+            )
+        else:
+            return (None, None)
+
     def update_tweet_db(self, article_id, tweet_id, column):
         if column == 'id':
             article = {
@@ -95,6 +118,17 @@ class BaseParser(object):
             }
         self.articles_table.update(article, [column])
         logging.debug('Updated tweet ID in db')
+
+    def update_bsky_db(self, article_id, post_ref, root_ref, column):
+        article = {
+            column: article_id,
+            'post_uri': post_ref.uri,
+            'post_cid': post_ref.cid,
+            'root_uri': root_ref.uri,
+            'root_cid': root_ref.cid,
+        }
+        self.articles_table.update(article, [column])
+        logging.debug('Updated bsky refs in db')
 
     def media_upload(self, filename):
         if TESTING:
@@ -155,6 +189,60 @@ class BaseParser(object):
             logging.info('Id to store: %s', tweet.id)
             self.update_tweet_db(article_id, tweet.id, column)
         return
+
+    def bsky_website_card(self, article_data):
+        # Generate a website preview card for the specified url
+        # Returns a models.AppBskyEmbedExternal object suitable
+        # for passing as the `embed' argument to atproto.send_post
+        post_title = article_data['title']
+        post_description = article_data['abstract']
+        post_uri = article_data['url']
+        extra_args = {}
+        if 'thumbnail' in article_data:
+            r = requests.get(url=article_data['thumbnail'])
+            if r.ok:
+                thumb = self.bsky_api.upload_blob(r.content)
+                extra_args['thumb'] = thumb.blob
+
+        return models.AppBskyEmbedExternal.Main(
+            external=models.AppBskyEmbedExternal.External(
+                title=post_title,
+                description=post_description,
+                uri=post_uri,
+                **extra_args
+            )
+        )
+
+    def bsky_post(self, text, article_data, column='id'):
+        article_id = article_data['article_id']
+        url = article_data['url']
+        img_path = './output/' + self.filename + '.png'
+        with open(img_path, 'rb') as f:
+            img_data = f.read()
+        logging.info('Media ready with ids: %s', img_path)
+        logging.info('Text to post: %s', text)
+        logging.info('Article id: %s', article_id)
+        (parent_ref, root_ref) = self.get_bsky_parent(article_id, column)
+        if parent_ref is None:
+            # No parent, let's start a new thread
+            logging.info('Posting url: %s', url)
+            post = self.bsky_api.send_post(
+                '', embed=self.bsky_website_card(article_data)
+            )
+            root_ref = models.create_strong_ref(post)
+            parent_ref = root_ref
+
+        logging.info('Replying to: %s', parent_ref)
+        post = self.bsky_api.send_image(
+            text=text,
+            image=img_data,
+            image_alt='',
+            reply_to=models.AppBskyFeedPost.ReplyRef(
+                parent=parent_ref, root=root_ref)
+        )
+        child_ref = models.create_strong_ref(post)
+        logging.info('Id to store: %s', child_ref)
+        self.update_bsky_db(article_id, child_ref, root_ref, column)
 
     def get_page(self, url, header=None, payload=None):
         for x in range(MAX_RETRIES):
@@ -250,12 +338,19 @@ class BaseParser(object):
 
 
 class NYTParser(BaseParser):
-    def __init__(self, api, nyt_api_key):
-        BaseParser.__init__(self, api)
+    def __init__(self, api, nyt_api_key, bsky_api=None):
+        BaseParser.__init__(self, api, bsky_api=bsky_api)
         self.urls = ['https://api.nytimes.com/svc/topstories/v2/home.json']
         self.payload = {'api-key': nyt_api_key}
         self.articles_table = self.db['nyt_ids']
         self.versions_table = self.db['nyt_versions']
+
+    def get_thumbnail(self, article):
+        # Return the URL for the first thumbnail image in the article.
+        for m in article['multimedia']:
+            if m['type'] == 'image' and m['width'] < 400:
+                return m['url']
+        return None
 
     def json_to_dict(self, article):
         article_dict = dict()
@@ -267,6 +362,7 @@ class NYTParser(BaseParser):
         article_dict['abstract'] = self.strip_html(article['abstract'])
         article_dict['byline'] = article['byline']
         article_dict['kicker'] = article['kicker']
+        article_dict['thumbnail'] = self.get_thumbnail(article)
         od = collections.OrderedDict(sorted(article_dict.items()))
         article_dict['hash'] = hashlib.sha224(
             repr(od.items()).encode('utf-8')).hexdigest()
@@ -280,7 +376,12 @@ class NYTParser(BaseParser):
                 'article_id': data['article_id'],
                 'add_dt': data['date_time'],
                 'status': 'home',
-                'tweet_id': None
+                'thumbnail': data['thumbnail'],
+                'tweet_id': None,
+                'post_uri': None,
+                'post_cid': None,
+                'root_uri': None,
+                'root_cid': None,
             }
             self.articles_table.insert(article)
             logging.info('New article tracked: %s', data['url'])
@@ -314,23 +415,27 @@ class NYTParser(BaseParser):
                     if row['url'] != data['url']:
                         if self.show_diff(row['url'], data['url']):
                             tweet_text = 'Change in URL'
-                            self.tweet(tweet_text, data['article_id'], url,
-                                       'article_id')
+                            self.bsky_post(tweet_text, data, 'article_id')
+                            #self.tweet(tweet_text, data['article_id'], url,
+                            #           'article_id')
                     if row['title'] != data['title']:
                         if self.show_diff(row['title'], data['title']):
                             tweet_text = 'Change in Title'
-                            self.tweet(tweet_text, data['article_id'], url,
-                                       'article_id')
+                            self.bsky_post(tweet_text, data, 'article_id')
+                            #self.tweet(tweet_text, data['article_id'], url,
+                            #           'article_id')
                     if row['abstract'] != data['abstract']:
                         if self.show_diff(row['abstract'], data['abstract']):
                             tweet_text = 'Change in Abstract'
-                            self.tweet(tweet_text, data['article_id'], url,
-                                       'article_id')
+                            self.bsky_post(tweet_text, data, 'article_id')
+                            #self.tweet(tweet_text, data['article_id'], url,
+                            #           'article_id')
                     if row['kicker'] != data['kicker']:
                         if self.show_diff(row['kicker'], data['kicker']):
                             tweet_text = 'Change in Kicker'
-                            self.tweet(tweet_text, data['article_id'], url,
-                                       'article_id')
+                            self.bsky_post(tweet_text, data, 'article_id')
+                            #self.tweet(tweet_text, data['article_id'], url,
+                            #           'article_id')
 
     def loop_data(self, data):
         if 'results' not in data:
@@ -389,10 +494,21 @@ def main():
     nyt_api = tweepy.API(auth)
     logging.debug('NYT Twitter API configured')
 
+    bsky_api = None
+    if 'BLUESKY_LOGIN' in os.environ:
+        bsky_login = os.environ['BLUESKY_LOGIN']
+        bsky_passwd = os.environ['BLUESKY_PASSWD']
+        bsky_api = Client(base_url='https://bsky.social')
+        try:
+            bsky_api.login(bsky_login, bsky_passwd)
+        except:
+            logging.exception('Bluesky login failed')
+            return
+
     try:
         logging.debug('Starting NYT')
         nyt_api_key = os.environ['NYT_API_KEY']
-        nyt = NYTParser(nyt_api, nyt_api_key)
+        nyt = NYTParser(nyt_api, nyt_api_key, bsky_api=bsky_api)
         nyt.parse_pages()
         logging.debug('Finished NYT')
     except:
