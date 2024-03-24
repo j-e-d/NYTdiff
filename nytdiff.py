@@ -93,7 +93,7 @@ class BaseParser(object):
             search = self.articles_table.find_one(id=article_id)
         else:
             search = self.articles_table.find_one(article_id=article_id)
-        if search and 'post_uri' in search:
+        if search and search.get('post_uri'):
             post_uri = search['post_uri']
             post_cid = search['post_cid']
             root_uri = search['root_uri']
@@ -223,6 +223,8 @@ class BaseParser(object):
         logging.info('Text to post: %s', text)
         logging.info('Article id: %s', article_id)
         (parent_ref, root_ref) = self.get_bsky_parent(article_id, column)
+        logging.info('Parent ref: %s', parent_ref)
+        logging.info('Root ref: %s', root_ref)
         if parent_ref is None:
             # No parent, let's start a new thread
             logging.info('Posting url: %s', url)
@@ -286,7 +288,7 @@ class BaseParser(object):
         <html lang="en">
           <head>
             <meta charset="utf-8">
-            <link rel="stylesheet" href="styles.css">
+            <link rel="stylesheet" href="css/styles.css">
           </head>
           <body>
           <p>
@@ -295,42 +297,22 @@ class BaseParser(object):
           </body>
         </html>
         """.format(html_diff(old, new))
-        with TemporaryDirectory() as tmpdir:
+        with TemporaryDirectory(delete=False) as tmpdir:
             tmpfile = os.path.join(tmpdir, 'tmp.html')
             with open(tmpfile, 'w') as f:
                 f.write(html)
-            shutil.copy('./css/styles.css', tmpdir)
-            driver = webdriver.Chrome()
+            for d in ['css', 'fonts', 'img']:
+                shutil.copytree(d, os.path.join(tmpdir, d))
+            opts = webdriver.chrome.options.Options()
+            opts.add_argument("--window-size=400,400")
+            driver = webdriver.Chrome(options=opts)
             driver.get('file://{}'.format(tmpfile))
+            logging.info('tmpfile is %s', tmpfile)
 
         e = driver.find_element(By.XPATH, '//p')
-        start_height = e.location['y']
-        block_height = e.size['height']
-        end_height = start_height
-        start_width = e.location['x']
-        block_width = e.size['width']
-        end_width = start_width
-        total_height = start_height + block_height + end_height
-        total_width = start_width + block_width + end_width
         timestamp = str(int(time.time()))
-        driver.save_screenshot('./tmp.png')
-        img = Image.open('./tmp.png')
-        img2 = img.crop((0, 0, total_width, total_height))
-        if int(total_width) > int(total_height * 2):
-            background = Image.new('RGBA', (total_width, int(total_width / 2)),
-                                   (255, 255, 255, 0))
-            bg_w, bg_h = background.size
-            offset = (int((bg_w - total_width) / 2),
-                      int((bg_h - total_height) / 2))
-        else:
-            background = Image.new('RGBA', (total_width, total_height),
-                                   (255, 255, 255, 0))
-            bg_w, bg_h = background.size
-            offset = (int((bg_w - total_width) / 2),
-                      int((bg_h - total_height) / 2))
-        background.paste(img2, offset)
         self.filename = timestamp + new_hash
-        background.save('./output/' + self.filename + '.png')
+        e.screenshot('./output/' + self.filename + '.png')
         return True
 
     def __str__(self):
