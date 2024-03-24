@@ -354,9 +354,9 @@ class NYTParser(BaseParser):
 
     def json_to_dict(self, article):
         article_dict = dict()
-        if 'short_url' not in article:
+        if not article.get('uri'):
             return None
-        article_dict['article_id'] = article['short_url'].split('/')[-1]
+        article_dict['article_id'] = article['uri']
         article_dict['url'] = article['url']
         article_dict['title'] = article['title']
         article_dict['abstract'] = self.strip_html(article['abstract'])
