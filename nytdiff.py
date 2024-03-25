@@ -207,8 +207,8 @@ class BaseParser(object):
         post_description = article_data["abstract"]
         post_uri = article_data["url"]
         extra_args = {}
-        if "thumbnail" in article_data:
-            r = requests.get(url=article_data["thumbnail"])
+        if article_data.get('thumbnail'):
+            r = requests.get(url=article_data['thumbnail'])
             if r.ok:
                 thumb = self.bsky_api.upload_blob(r.content)
                 extra_args["thumb"] = thumb.blob
@@ -344,10 +344,20 @@ class NYTParser(BaseParser):
 
     def get_thumbnail(self, article):
         # Return the URL for the first thumbnail image in the article.
-        for m in article["multimedia"]:
-            if m["type"] == "image" and m["width"] < 400:
-                return m["url"]
-        return None
+        # Choose the largest sub-600-pixel image available (Bluesky thumbnails
+        # are resized to 560 pixels)
+        thumb_url = None
+        thumb_width = 0
+        if article.get('multimedia'):
+            for m in article['multimedia']:
+                if m['type'] != 'image':
+                    continue
+                if m['width'] > 600:
+                    continue
+                if m['width'] > thumb_width:
+                    thumb_width = m['width']
+                    thumb_url = m['url']
+        return thumb_url
 
     def json_to_dict(self, article):
         article_dict = dict()
