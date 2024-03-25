@@ -132,30 +132,31 @@ class BaseParser(object):
     def tweet_with_media(self, text, images, reply_to=None):
         if TESTING:
             print(text, images, reply_to)
-            return None
+            return True
         try:
             if reply_to is not None:
-                tweet_id = self.api.update_status(
-                    status=text, media_ids=images, in_reply_to_status_id=reply_to
+                tweet = self.client.create_tweet(
+                    text=text, media_ids=images, in_reply_to_tweet_id=reply_to
                 )
             else:
-                tweet_id = self.api.update_status(status=text, media_ids=images)
+                tweet = self.client.create_tweet(text=text, media_ids=images)
         except:
             logging.exception("Tweet with media failed")
             print(sys.exc_info()[0])
             return False
-        return tweet_id
+        return tweet
 
     def tweet_text(self, text):
         if TESTING:
             print(text)
+            return True
         try:
-            tweet_id = self.api.update_status(status=text)
+            tweet = self.client.create_tweet(text=text)
         except:
             logging.exception("Tweet text failed")
             print(sys.exc_info()[0])
             return False
-        return tweet_id
+        return tweet
 
     def media_metadata(self, image, alt_text):
         if TESTING:
@@ -278,8 +279,11 @@ class BaseParser(object):
         """
         tags = []
         attr = {}
+        styles = []
         strip = True
-        return bleach.clean(html_str, tags=tags, attributes=attr, strip=strip)
+        return bleach.clean(
+            html_str, tags=tags, attributes=attr, styles=styles, strip=strip
+        )
 
     def show_diff(self, old, new):
         if old is None or new is None or len(old) == 0 or len(new) == 0:
