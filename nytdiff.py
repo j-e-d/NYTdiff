@@ -224,7 +224,7 @@ class BaseParser(object):
             )
         )
 
-    def bsky_post(self, text, article_data, column="id"):
+    def bsky_post(self, text, article_data, column="id", alt_text=""):
         if not self.bsky_api:
             return
         article_id = article_data["article_id"]
@@ -251,7 +251,7 @@ class BaseParser(object):
         post = self.bsky_api.send_image(
             text=text,
             image=img_data,
-            image_alt="",
+            image_alt=alt_text,
             reply_to=models.AppBskyFeedPost.ReplyRef(parent=parent_ref, root=root_ref),
         )
         child_ref = models.create_strong_ref(post)
@@ -446,7 +446,8 @@ class NYTParser(BaseParser):
                             old_text = row["url"].split("nytimes.com/")[1]
                             new_text = data["url"].split("nytimes.com/")[1]
                             alt_text = self.generate_alt_text(old_text, new_text)
-                            self.bsky_post(tweet_text, data, "article_id")
+                            self.bsky_post(
+                                tweet_text, data, "article_id", alt_text)
                             self.tweet(
                                 tweet_text,
                                 data["article_id"],
@@ -460,7 +461,8 @@ class NYTParser(BaseParser):
                             alt_text = self.generate_alt_text(
                                 row["title"], data["title"]
                             )
-                            self.bsky_post(tweet_text, data, "article_id")
+                            self.bsky_post(
+                                tweet_text, data, "article_id", alt_text)
                             self.tweet(
                                 tweet_text,
                                 data["article_id"],
@@ -474,7 +476,8 @@ class NYTParser(BaseParser):
                             alt_text = self.generate_alt_text(
                                 row["abstract"], data["abstract"]
                             )
-                            self.bsky_post(tweet_text, data, "article_id")
+                            self.bsky_post(
+                                tweet_text, data, "article_id", alt_text)
                             self.tweet(
                                 tweet_text,
                                 data["article_id"],
@@ -488,7 +491,8 @@ class NYTParser(BaseParser):
                             alt_text = self.generate_alt_text(
                                 row["kicker"], data["kicker"]
                             )
-                            self.bsky_post(tweet_text, data, "article_id")
+                            self.bsky_post(
+                                tweet_text, data, "article_id", alt_text)
                             self.tweet(
                                 tweet_text,
                                 data["article_id"],
