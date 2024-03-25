@@ -173,6 +173,8 @@ class BaseParser(object):
     def tweet(
         self, text, article_id, url, column="id", alt_text=None, archive_url=None
     ):
+        if not self.client:
+            return
         images = list()
         image = self.media_upload("./output/" + self.filename + ".png")
         logging.info("Media ready with ids: %s", image)
@@ -223,6 +225,8 @@ class BaseParser(object):
         )
 
     def bsky_post(self, text, article_data, column="id"):
+        if not self.bsky_api:
+            return
         article_id = article_data["article_id"]
         url = article_data["url"]
         img_path = "./output/" + self.filename + ".png"
@@ -279,11 +283,8 @@ class BaseParser(object):
         """
         tags = []
         attr = {}
-        styles = []
         strip = True
-        return bleach.clean(
-            html_str, tags=tags, attributes=attr, styles=styles, strip=strip
-        )
+        return bleach.clean(html_str, tags=tags, attributes=attr, strip=strip)
 
     def show_diff(self, old, new):
         if old is None or new is None or len(old) == 0 or len(new) == 0:
@@ -385,14 +386,6 @@ class NYTParser(BaseParser):
         return "Before: {}\nAfter: {}".format(old, new)
 
     def store_data(self, data):
-        if self.articles_table.find_one(article_id=data["short_url"]) is None:
-            data["article_id"] = data["uri"]
-        else:
-            data["article_id"] = data["short_url"]
-
-        if data["short_url"] == "":
-            data["article_id"] = data["uri"]
-
         if self.articles_table.find_one(article_id=data["article_id"]) is None:  # New
             article = {
                 "article_id": data["article_id"],
@@ -555,23 +548,26 @@ def main():
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.info("Starting script")
 
-    consumer_key = os.environ["NYT_TWITTER_CONSUMER_KEY"]
-    consumer_secret = os.environ["NYT_TWITTER_CONSUMER_SECRET"]
-    access_token = os.environ["NYT_TWITTER_ACCESS_TOKEN"]
-    access_token_secret = os.environ["NYT_TWITTER_ACCESS_TOKEN_SECRET"]
-    bearer_token = os.environ["NYT_BEARER_TOKEN"]
-    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.secure = True
-    auth.set_access_token(access_token, access_token_secret)
-    nyt_api = tweepy.API(auth)
-    nyt_client = tweepy.Client(
-        bearer_token=bearer_token,
-        consumer_key=consumer_key,
-        consumer_secret=consumer_secret,
-        access_token=access_token,
-        access_token_secret=access_token_secret,
-    )
-    logging.debug("NYT Twitter API configured")
+    nyt_api = None
+    nyt_client = None
+    if os.environ.get("NYT_TWITTER_CONSUMER_KEY"):
+        consumer_key = os.environ["NYT_TWITTER_CONSUMER_KEY"]
+        consumer_secret = os.environ["NYT_TWITTER_CONSUMER_SECRET"]
+        access_token = os.environ["NYT_TWITTER_ACCESS_TOKEN"]
+        access_token_secret = os.environ["NYT_TWITTER_ACCESS_TOKEN_SECRET"]
+        bearer_token = os.environ["NYT_BEARER_TOKEN"]
+        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+        auth.secure = True
+        auth.set_access_token(access_token, access_token_secret)
+        nyt_api = tweepy.API(auth)
+        nyt_client = tweepy.Client(
+            bearer_token=bearer_token,
+            consumer_key=consumer_key,
+            consumer_secret=consumer_secret,
+            access_token=access_token,
+            access_token_secret=access_token_secret,
+        )
+        logging.debug("NYT Twitter API configured")
 
     bsky_api = None
     if "BLUESKY_LOGIN" in os.environ:
