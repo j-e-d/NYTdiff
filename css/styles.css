@@ -16,6 +16,11 @@ p {
     margin-right: 2em;
     margin-top: 1em;
     margin-bottom: 1em;
+    padding-left: 25px;
+    padding-right: 25px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    width: 350px;
     font-weight: normal;
 }
 
