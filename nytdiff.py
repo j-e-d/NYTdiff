@@ -173,6 +173,8 @@ class BaseParser(object):
     def tweet(
         self, text, article_id, url, column="id", alt_text=None, archive_url=None
     ):
+        if not self.client:
+            return
         images = list()
         image = self.media_upload("./output/" + self.filename + ".png")
         logging.info("Media ready with ids: %s", image)
@@ -207,8 +209,8 @@ class BaseParser(object):
         post_description = article_data["abstract"]
         post_uri = article_data["url"]
         extra_args = {}
-        if "thumbnail" in article_data:
-            r = requests.get(url=article_data["thumbnail"])
+        if article_data.get('thumbnail'):
+            r = requests.get(url=article_data['thumbnail'])
             if r.ok:
                 thumb = self.bsky_api.upload_blob(r.content)
                 extra_args["thumb"] = thumb.blob
@@ -222,7 +224,9 @@ class BaseParser(object):
             )
         )
 
-    def bsky_post(self, text, article_data, column="id"):
+    def bsky_post(self, text, article_data, column="id", alt_text=""):
+        if not self.bsky_api:
+            return
         article_id = article_data["article_id"]
         url = article_data["url"]
         img_path = "./output/" + self.filename + ".png"
@@ -247,7 +251,7 @@ class BaseParser(object):
         post = self.bsky_api.send_image(
             text=text,
             image=img_data,
-            image_alt="",
+            image_alt=alt_text,
             reply_to=models.AppBskyFeedPost.ReplyRef(parent=parent_ref, root=root_ref),
         )
         child_ref = models.create_strong_ref(post)
@@ -279,11 +283,8 @@ class BaseParser(object):
         """
         tags = []
         attr = {}
-        styles = []
         strip = True
-        return bleach.clean(
-            html_str, tags=tags, attributes=attr, styles=styles, strip=strip
-        )
+        return bleach.clean(html_str, tags=tags, attributes=attr, strip=strip)
 
     def show_diff(self, old, new):
         if old is None or new is None or len(old) == 0 or len(new) == 0:
@@ -319,7 +320,6 @@ class BaseParser(object):
                 shutil.copytree(d, os.path.join(tmpdir, d))
             opts = webdriver.chrome.options.Options()
             opts.add_argument("--headless")
-            opts.add_argument("--window-size=400,400")
             driver = webdriver.Chrome(options=opts)
             driver.get("file://{}".format(tmpfile))
             logging.info("tmpfile is %s", tmpfile)
@@ -344,10 +344,20 @@ class NYTParser(BaseParser):
 
     def get_thumbnail(self, article):
         # Return the URL for the first thumbnail image in the article.
-        for m in article["multimedia"]:
-            if m["type"] == "image" and m["width"] < 400:
-                return m["url"]
-        return None
+        # Choose the largest sub-600-pixel image available (Bluesky thumbnails
+        # are resized to 560 pixels)
+        thumb_url = None
+        thumb_width = 0
+        if article.get('multimedia'):
+            for m in article['multimedia']:
+                if m['type'] != 'image':
+                    continue
+                if m['width'] > 600:
+                    continue
+                if m['width'] > thumb_width:
+                    thumb_width = m['width']
+                    thumb_url = m['url']
+        return thumb_url
 
     def json_to_dict(self, article):
         article_dict = dict()
@@ -375,14 +385,6 @@ class NYTParser(BaseParser):
         return "Before: {}\nAfter: {}".format(old, new)
 
     def store_data(self, data):
-        if self.articles_table.find_one(article_id=data["short_url"]) is None:
-            data["article_id"] = data["uri"]
-        else:
-            data["article_id"] = data["short_url"]
-
-        if data["short_url"] == "":
-            data["article_id"] = data["uri"]
-
         if self.articles_table.find_one(article_id=data["article_id"]) is None:  # New
             article = {
                 "article_id": data["article_id"],
@@ -443,7 +445,8 @@ class NYTParser(BaseParser):
                             old_text = row["url"].split("nytimes.com/")[1]
                             new_text = data["url"].split("nytimes.com/")[1]
                             alt_text = self.generate_alt_text(old_text, new_text)
-                            self.bsky_post(tweet_text, data, "article_id")
+                            self.bsky_post(
+                                tweet_text, data, "article_id", alt_text)
                             self.tweet(
                                 tweet_text,
                                 data["article_id"],
@@ -457,7 +460,8 @@ class NYTParser(BaseParser):
                             alt_text = self.generate_alt_text(
                                 row["title"], data["title"]
                             )
-                            self.bsky_post(tweet_text, data, "article_id")
+                            self.bsky_post(
+                                tweet_text, data, "article_id", alt_text)
                             self.tweet(
                                 tweet_text,
                                 data["article_id"],
@@ -471,7 +475,8 @@ class NYTParser(BaseParser):
                             alt_text = self.generate_alt_text(
                                 row["abstract"], data["abstract"]
                             )
-                            self.bsky_post(tweet_text, data, "article_id")
+                            self.bsky_post(
+                                tweet_text, data, "article_id", alt_text)
                             self.tweet(
                                 tweet_text,
                                 data["article_id"],
@@ -485,7 +490,8 @@ class NYTParser(BaseParser):
                             alt_text = self.generate_alt_text(
                                 row["kicker"], data["kicker"]
                             )
-                            self.bsky_post(tweet_text, data, "article_id")
+                            self.bsky_post(
+                                tweet_text, data, "article_id", alt_text)
                             self.tweet(
                                 tweet_text,
                                 data["article_id"],
@@ -545,23 +551,26 @@ def main():
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.info("Starting script")
 
-    consumer_key = os.environ["NYT_TWITTER_CONSUMER_KEY"]
-    consumer_secret = os.environ["NYT_TWITTER_CONSUMER_SECRET"]
-    access_token = os.environ["NYT_TWITTER_ACCESS_TOKEN"]
-    access_token_secret = os.environ["NYT_TWITTER_ACCESS_TOKEN_SECRET"]
-    bearer_token = os.environ["NYT_BEARER_TOKEN"]
-    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.secure = True
-    auth.set_access_token(access_token, access_token_secret)
-    nyt_api = tweepy.API(auth)
-    nyt_client = tweepy.Client(
-        bearer_token=bearer_token,
-        consumer_key=consumer_key,
-        consumer_secret=consumer_secret,
-        access_token=access_token,
-        access_token_secret=access_token_secret,
-    )
-    logging.debug("NYT Twitter API configured")
+    nyt_api = None
+    nyt_client = None
+    if os.environ.get("NYT_TWITTER_CONSUMER_KEY"):
+        consumer_key = os.environ["NYT_TWITTER_CONSUMER_KEY"]
+        consumer_secret = os.environ["NYT_TWITTER_CONSUMER_SECRET"]
+        access_token = os.environ["NYT_TWITTER_ACCESS_TOKEN"]
+        access_token_secret = os.environ["NYT_TWITTER_ACCESS_TOKEN_SECRET"]
+        bearer_token = os.environ["NYT_BEARER_TOKEN"]
+        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+        auth.secure = True
+        auth.set_access_token(access_token, access_token_secret)
+        nyt_api = tweepy.API(auth)
+        nyt_client = tweepy.Client(
+            bearer_token=bearer_token,
+            consumer_key=consumer_key,
+            consumer_secret=consumer_secret,
+            access_token=access_token,
+            access_token_secret=access_token_secret,
+        )
+        logging.debug("NYT Twitter API configured")
 
     bsky_api = None
     if "BLUESKY_LOGIN" in os.environ:
