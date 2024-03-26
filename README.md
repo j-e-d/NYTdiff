@@ -2,6 +2,10 @@
 
 Code for the twitter bot [@nyt_diff](https://twitter.com/nyt_diff).
 
+Bluesky version: [@nytdiff.bsky.social](https://bsky.app/profile/nytdiff.bsky.social)
+
+Mastodon version: <a rel="me" href="https://botsin.space/@nyt_diff">@nyt_diff</a>
+
 The [phantomjs](http://phantomjs.org/) binary needs to be installed and the path updated in the run_diff.sh file.
 
 [Twitter keys](https://dev.twitter.com/) and the [NYT API](http://developers.nytimes.com/) key for the "Top Stories V2" service are needed, values of this keys need to be entered in the run_diff.sh file.
