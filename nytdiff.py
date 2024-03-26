@@ -320,7 +320,6 @@ class BaseParser(object):
                 shutil.copytree(d, os.path.join(tmpdir, d))
             opts = webdriver.chrome.options.Options()
             opts.add_argument("--headless")
-            opts.add_argument("--window-size=400,400")
             driver = webdriver.Chrome(options=opts)
             driver.get("file://{}".format(tmpfile))
             logging.info("tmpfile is %s", tmpfile)
