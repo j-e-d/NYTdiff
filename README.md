@@ -4,7 +4,7 @@ Code for the twitter bot [@nyt_diff](https://twitter.com/nyt_diff).
 
 Bluesky version: [@nytdiff.bsky.social](https://bsky.app/profile/nytdiff.bsky.social)
 
-Mastodon version: <a rel="me" href="https://botsin.space/@nyt_diff">@nyt_diff</a>
+Mastodon version: [@nyt_diff@botsin.space](https://botsin.space/@nyt_diff)
 
 The [phantomjs](http://phantomjs.org/) binary needs to be installed and the path updated in the run_diff.sh file.
 
