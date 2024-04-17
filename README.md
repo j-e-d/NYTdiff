@@ -1,6 +1,6 @@
 # NYTdiff
 
-Code for the twitter bot [@nyt_diff](https://twitter.com/nyt_diff).
+Code for the Twitter bot [@nyt_diff](https://twitter.com/nyt_diff).
 
 Bluesky version: [@nytdiff.bsky.social](https://bsky.app/profile/nytdiff.bsky.social)
 
@@ -8,11 +8,11 @@ Mastodon version: [@nyt_diff@botsin.space](https://botsin.space/@nyt_diff)
 
 The [phantomjs](http://phantomjs.org/) binary needs to be installed and the path updated in the run_diff.sh file.
 
-[Twitter keys](https://dev.twitter.com/) and the [NYT API](http://developers.nytimes.com/) key for the "Top Stories V2" service are needed, values of this keys need to be entered in the run_diff.sh file.
+[Twitter keys](https://dev.twitter.com/) and the [NYT API](http://developers.nytimes.com/) key for the "Top Stories V2" service are needed, values of these keys need to be entered in the run_diff.sh file.
 
 Font: [Merriweather](https://github.com/SorkinType/Merriweather). Background pattern: [Paper Fibers](http://subtlepatterns.com/paper-fibers/).
 
-If you wish to build your own version check [this fork](https://github.com/xuv/NYTdiff) that reads RSS feeds and [this project](https://github.com/docnow/diffengine) that is in part based on nyt_diff and also checks RSS feeds.
+If you wish to build your version check [this fork](https://github.com/xuv/NYTdiff) that reads RSS feeds and [this project](https://github.com/docnow/diffengine) that is in part based on nyt_diff and also checks RSS feeds.
 
 Bots with similar functionality that I am aware of (please let me know of others).
 
@@ -53,7 +53,7 @@ Bots with similar functionality that I am aware of (please let me know of others
 |[The Washington Post]|[wapo_diff]|
 |[White House Blog]|[whitehouse_diff]
 
-Some bot accounts are currently (November 2020) suspended by twitter and have been ~~strikethrough~~.
+Some bot accounts are currently (November 2020) suspended by Twitter and have been ~~strikethrough~~.
 
 [EditandoAbc]: https://twitter.com/EditandoAbc
 [ABC Digital]: http://www.abc.com.py/
