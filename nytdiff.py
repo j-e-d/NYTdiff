@@ -16,6 +16,7 @@ import dataset
 import requests
 import tweepy
 from atproto import Client, models
+from PIL import Image
 from pytz import timezone
 from simplediff import html_diff
 from selenium import webdriver
@@ -229,9 +230,12 @@ class BaseParser(object):
             return
         article_id = article_data["article_id"]
         url = article_data["url"]
+
+        # Collect image data for the thumbnail
         img_path = "./output/" + self.filename + ".png"
         with open(img_path, "rb") as f:
             img_data = f.read()
+            img_blob = self.bsky_api.upload_blob(img_data).blob
         logging.info("Media ready with ids: %s", img_path)
         logging.info("Text to post: %s", text)
         logging.info("Article id: %s", article_id)
@@ -248,10 +252,21 @@ class BaseParser(object):
             parent_ref = root_ref
 
         logging.info("Replying to: %s", parent_ref)
-        post = self.bsky_api.send_image(
+
+        # Prepare an image upload with aspect ratio hints
+        with Image.open(img_path) as img:
+            aspect_ratio = models.AppBskyEmbedDefs.AspectRatio(
+                height=img.height,
+                width=img.width
+            )
+        image_embed = models.AppBskyEmbedImages.Image(
+            alt=alt_text,
+            image=img_blob,
+            aspect_ratio=aspect_ratio
+        )
+        post = self.bsky_api.send_post(
             text=text,
-            image=img_data,
-            image_alt=alt_text,
+            embed=models.AppBskyEmbedImages.Main(images=[image_embed]),
             reply_to=models.AppBskyFeedPost.ReplyRef(parent=parent_ref, root=root_ref),
         )
         child_ref = models.create_strong_ref(post)
